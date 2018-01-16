@@ -40,6 +40,9 @@ executables:
     - http-conduit
     - bytestring
     - http-listen
+    - HTTP
+    - network-uri
+    - extra
 
 tests:
   hrive-test:
