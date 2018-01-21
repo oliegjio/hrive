@@ -43,6 +43,8 @@ executables:
     - HTTP
     - network-uri
     - extra
+    - aeson
+    - utf8-string
 
 tests:
   hrive-test:

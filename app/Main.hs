@@ -1,10 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Main where
 
 import System.Process
 
 import Data.Either.Extra
+import Data.Aeson hiding (Result)
+import Data.ByteString.Lazy.UTF8 (fromString)
+import GHC.Generics
 
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as B
@@ -22,6 +26,15 @@ import Network.URI
 
 type URL  = String
 
+data TokenResponse = TokenResponse { access_token :: String
+                                   , token_type   :: String
+                                   , expires_in   :: Int
+                                   } deriving (Generic, Show)
+                                   
+instance FromJSON TokenResponse where
+instance ToJSON   TokenResponse where
+  toEncoding = genericToEncoding defaultOptions
+  
 get :: URL -> IO String
 get url = parseRequest url
   >>= httpBS
@@ -33,7 +46,7 @@ post url = parseRequest url
   >>= httpBS
   >>= return . B8.unpack . getResponseBody
 
-listener :: Listener B.ByteString IO
+listener :: Listener B8.ByteString IO
 listener request = print request >> return Nothing
 
 localPort    = 8999 :: Int
@@ -74,24 +87,28 @@ authApp codeE = case codeE of
     jsonResponse <- post authURL
     return $ Right jsonResponse
   
-listen :: Int -> IO (Result (Request B.ByteString))
+listen :: Int -> IO (Result (Request B8.ByteString))
 listen port = do
   sock   <- prepareSocket port
   conn   <- acceptConnection sock
-  stream <- openStream conn :: IO (Stream B.ByteString)
-  result <- receiveRequest stream :: IO (Result (Request B.ByteString))
+  stream <- openStream conn :: IO (Stream B8.ByteString)
+  result <- receiveRequest stream :: IO (Result (Request B8.ByteString))
   closeStream stream
   return result
 
 main :: IO ()
 main = do
   -- r <- createProcess $ proc "chromium" [url]
-  r <- createProcess $ proc "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" [consentURL]
+  -- r <- createProcess $ proc "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" [consentURL]
+  r <- createProcess $ proc "C:\\Program Files\\Mozilla Firefox\\firefox.exe" [consentURL]
   
   result <- listen localPort
   let authCode = handleResult result takeAuthCode
   authResult <- authApp authCode
   case authResult of
     Left  _        -> print False
-    Right response -> print response
+    Right response -> do
+      print response
+      let jsonResponse = decode $ fromString response :: Maybe TokenResponse
+      print jsonResponse
   
