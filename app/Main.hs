@@ -1,114 +1,97 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-
 module Main where
 
-import System.Process
+  import System.Process
 
-import Data.Either.Extra
-import Data.Aeson hiding (Result)
-import Data.ByteString.Lazy.UTF8 (fromString)
-import GHC.Generics
+  import Data.Either.Extra
+  import Data.Aeson (decode)
+  import Data.ByteString.Lazy.UTF8 (fromString)
 
-import qualified Data.ByteString.Char8 as B8
-import qualified Data.ByteString.Lazy as B
+  import qualified Data.ByteString.Char8 as B8
+  import qualified Data.ByteString.Lazy as B
 
-import Control.Monad.IO.Class
-import Control.Monad.Catch
+  import Control.Monad.IO.Class
+  import Control.Monad.Catch
 
-import Network.HTTP.Simple hiding (Request)
-import Network.HTTP.Listen
-import Network.HTTP.Base
-import Network.Stream hiding (Stream)
-import Network.TCP (HStream)
-import Network.HTTP.Headers
-import Network.URI
+  import Network.HTTP.Simple hiding (Request)
+  import Network.HTTP.Listen
+  import Network.HTTP.Base
+  import Network.Stream hiding (Stream)
+  import Network.TCP (HStream)
+  import Network.HTTP.Headers
+  import Network.URI
 
-type URL  = String
-
-data TokenResponse = TokenResponse { access_token :: String
-                                   , token_type   :: String
-                                   , expires_in   :: Int
-                                   } deriving (Generic, Show)
-                                   
-instance FromJSON TokenResponse where
-instance ToJSON   TokenResponse where
-  toEncoding = genericToEncoding defaultOptions
+  import TokenResponse
+  import SimpleRequests
   
-get :: URL -> IO String
-get url = parseRequest url
-  >>= httpBS
-  >>= return . B8.unpack . getResponseBody
+  listener :: Listener B8.ByteString IO
+  listener request = print request >> return Nothing
 
-post :: URL -> IO String
-post url = parseRequest url
-  >>= return . setRequestMethod "POST"
-  >>= httpBS
-  >>= return . B8.unpack . getResponseBody
+  localPort    = 8999 :: Int
+  clientID     = "900337392594-avkns0t5472ef49johhhaor06p8qvn27.apps.googleusercontent.com"
+  clientSecret = "UQL0tyK4MvTDlj2ZzCDIMhfR"
+  redirectURI  = "http://127.0.0.1:" ++ show localPort
+  scope        = "https://www.googleapis.com/auth/drive.readonly"
+  responseType = "code"
+  grantType    = "authorization_code"
 
-listener :: Listener B8.ByteString IO
-listener request = print request >> return Nothing
+  consentURL = "https://accounts.google.com/o/oauth2/v2/auth"
+            ++ "?client_id="     ++ clientID
+            ++ "&redirect_uri="  ++ redirectURI
+            ++ "&response_type=" ++ responseType
+            ++ "&scope="         ++ scope
 
-localPort    = 8999 :: Int
-clientID     = "900337392594-avkns0t5472ef49johhhaor06p8qvn27.apps.googleusercontent.com"
-clientSecret = "UQL0tyK4MvTDlj2ZzCDIMhfR"
-redirectURI  = "http://127.0.0.1:" ++ show localPort
-scope        = "https://www.googleapis.com/auth/drive.readonly"
-responseType = "code"
-grantType    = "authorization_code"
+  processListenResult :: Either e (Request r) -> (Request r -> m) -> Either e m
+  processListenResult result f = case result of
+    Left  err       -> Left err
+    Right request   -> Right (f request)
 
-consentURL = "https://accounts.google.com/o/oauth2/v2/auth"
-          ++ "?client_id="     ++ clientID
-          ++ "&redirect_uri="  ++ redirectURI
-          ++ "&response_type=" ++ responseType
-          ++ "&scope="         ++ scope
+  takeAuthCode :: Request r -> String
+  takeAuthCode request = case request of
+    Request uri _ _ _ -> case uri of
+      URI _ _ _ query _ -> drop 6 query
     
-authURL' = "https://www.googleapis.com/oauth2/v4/token"
-         ++ "?client_id="     ++ clientID
-         ++ "&client_secret=" ++ clientSecret
-         ++ "&grant_type="    ++ grantType
-         ++ "&redirect_uri="    ++ redirectURI
+  authApp :: Either e String -> IO (Either e String)
+  authApp url = case url of
+    Left  e    -> return $ Left e
+    Right url  -> do
+      jsonResponse <- post url
+      return $ Right jsonResponse
+    
+  listen :: Int -> IO (Result (Request B8.ByteString))
+  listen port = do
+    sock   <- prepareSocket port
+    conn   <- acceptConnection sock
+    stream <- openStream conn :: IO (Stream B8.ByteString)
+    result <- receiveRequest stream :: IO (Result (Request B8.ByteString))
+    closeStream stream
+    return result
 
-handleResult :: Either e (Request r) -> (Request r -> m) -> Either e m
-handleResult result f = case result of
-  Left  err       -> Left err
-  Right request   -> Right (f request)
+  parseJSON :: String -> Maybe TokenResponse
+  parseJSON = decode . fromString
 
-takeAuthCode :: Request r -> String
-takeAuthCode request = case request of
-  Request uri _ _ _ -> case uri of
-    URI _ _ _ query _ -> drop 6 query
+  main :: IO ()
+  main = do
+    
+    -- r <- createProcess $ proc "chromium" [url]
+    -- r <- createProcess $ proc "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" [consentURL]
+    r <- createProcess $ proc "C:\\Program Files\\Mozilla Firefox\\firefox.exe" [consentURL]
+    
+    result <- listen localPort
   
-authApp :: Either e String -> IO (Either e String)
-authApp codeE = case codeE of
-  Left  e    -> return $ Left e
-  Right code -> do
-    let authURL = authURL' ++ "&code=" ++ code
-    jsonResponse <- post authURL
-    return $ Right jsonResponse
-  
-listen :: Int -> IO (Result (Request B8.ByteString))
-listen port = do
-  sock   <- prepareSocket port
-  conn   <- acceptConnection sock
-  stream <- openStream conn :: IO (Stream B8.ByteString)
-  result <- receiveRequest stream :: IO (Result (Request B8.ByteString))
-  closeStream stream
-  return result
+    let authCode = processListenResult result takeAuthCode    
+    let authURL = case authCode of
+                    Left e     -> Left e
+                    Right code -> Right ( "https://www.googleapis.com/oauth2/v4/token"
+                                       ++ "?client_id="     ++ clientID
+                                       ++ "&client_secret=" ++ clientSecret
+                                       ++ "&grant_type="    ++ grantType
+                                       ++ "&redirect_uri="  ++ redirectURI
+                                       ++ "&code="          ++ code
+                                        )
 
-main :: IO ()
-main = do
-  -- r <- createProcess $ proc "chromium" [url]
-  -- r <- createProcess $ proc "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" [consentURL]
-  r <- createProcess $ proc "C:\\Program Files\\Mozilla Firefox\\firefox.exe" [consentURL]
+    authResult <- authApp authURL
+    let accessData = either (\_ -> Nothing) (parseJSON) authResult
+    
+    print accessData
   
-  result <- listen localPort
-  let authCode = handleResult result takeAuthCode
-  authResult <- authApp authCode
-  case authResult of
-    Left  _        -> print False
-    Right response -> do
-      print response
-      let jsonResponse = decode $ fromString response :: Maybe TokenResponse
-      print jsonResponse
-  
+    return mempty
