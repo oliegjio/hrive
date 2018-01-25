@@ -9,22 +9,15 @@ module Main where
   import           Data.Aeson hiding (Result)
   import           Data.Maybe
 
-  import Control.Monad.IO.Class
-  import Control.Monad.Catch
-
   import Network.HTTP.Simple hiding (Request)
   import Network.Stream      hiding (Stream)
   import Network.TCP                (HStream)
   import Network.HTTP.Listen
   import Network.HTTP.Base
-  import Network.HTTP.Headers
   import Network.URI
 
   import AccessTokenResponse
   import SimpleRequests
-  
-  listener :: Listener B8.ByteString IO
-  listener request = print request >> return Nothing
 
   localPort    = 8999 :: Int
   clientID     = "900337392594-avkns0t5472ef49johhhaor06p8qvn27.apps.googleusercontent.com"
@@ -75,6 +68,7 @@ module Main where
     result <- listen localPort
   
     let authCode = processListenResult result takeAuthCode
+    
     if isNothing authCode then suicide "Couldn't receive response from consent screen!"
                           else print   "Received response from consent screen."
     let authURL = "https://www.googleapis.com/oauth2/v4/token"
@@ -86,6 +80,7 @@ module Main where
                where code = fromJust authCode
 
     authResult <- authApp authURL
+    
     if isNothing authResult then suicide "Wrong application authentication data!"
                             else print   "Application authenticated."
     let accessData = fromJust authResult
