@@ -1,26 +1,26 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
   import System.Process
-
-  import Data.Either.Extra
-  import Data.Aeson (decode)
-  import Data.ByteString.Lazy.UTF8 (fromString)
+  import System.Exit
 
   import qualified Data.ByteString.Char8 as B8
-  import qualified Data.ByteString.Lazy as B
+  import           Data.Aeson hiding (Result)
+  import           Data.Maybe
 
   import Control.Monad.IO.Class
   import Control.Monad.Catch
 
   import Network.HTTP.Simple hiding (Request)
+  import Network.Stream      hiding (Stream)
+  import Network.TCP                (HStream)
   import Network.HTTP.Listen
   import Network.HTTP.Base
-  import Network.Stream hiding (Stream)
-  import Network.TCP (HStream)
   import Network.HTTP.Headers
   import Network.URI
 
-  import TokenResponse
+  import AccessTokenResponse
   import SimpleRequests
   
   listener :: Listener B8.ByteString IO
@@ -40,22 +40,18 @@ module Main where
             ++ "&response_type=" ++ responseType
             ++ "&scope="         ++ scope
 
-  processListenResult :: Either e (Request r) -> (Request r -> m) -> Either e m
+  processListenResult :: Either e (Request r) -> (Request r -> m) -> Maybe m
   processListenResult result f = case result of
-    Left  err       -> Left err
-    Right request   -> Right (f request)
+    Left  _       -> Nothing
+    Right request -> Just (f request)
 
   takeAuthCode :: Request r -> String
   takeAuthCode request = case request of
     Request uri _ _ _ -> case uri of
       URI _ _ _ query _ -> drop 6 query
     
-  authApp :: Either e String -> IO (Either e String)
-  authApp url = case url of
-    Left  e    -> return $ Left e
-    Right url  -> do
-      jsonResponse <- post url
-      return $ Right jsonResponse
+  authApp :: String -> IO (Maybe AccessTokenResponse)
+  authApp url = post url >>= return . decodeStrict . B8.pack
     
   listen :: Int -> IO (Result (Request B8.ByteString))
   listen port = do
@@ -66,8 +62,8 @@ module Main where
     closeStream stream
     return result
 
-  parseJSON :: String -> Maybe TokenResponse
-  parseJSON = decode . fromString
+  suicide :: String -> IO ()
+  suicide m = print m >> exitFailure
 
   main :: IO ()
   main = do
@@ -78,19 +74,21 @@ module Main where
     
     result <- listen localPort
   
-    let authCode = processListenResult result takeAuthCode    
-    let authURL = case authCode of
-                    Left e     -> Left e
-                    Right code -> Right ( "https://www.googleapis.com/oauth2/v4/token"
-                                       ++ "?client_id="     ++ clientID
-                                       ++ "&client_secret=" ++ clientSecret
-                                       ++ "&grant_type="    ++ grantType
-                                       ++ "&redirect_uri="  ++ redirectURI
-                                       ++ "&code="          ++ code
-                                        )
+    let authCode = processListenResult result takeAuthCode
+    if isNothing authCode then suicide "Couldn't receive response from consent screen!"
+                          else print   "Received response from consent screen."
+    let authURL = "https://www.googleapis.com/oauth2/v4/token"
+               ++ "?client_id="     ++ clientID
+               ++ "&client_secret=" ++ clientSecret
+               ++ "&grant_type="    ++ grantType
+               ++ "&redirect_uri="  ++ redirectURI
+               ++ "&code="          ++ code
+               where code = fromJust authCode
 
     authResult <- authApp authURL
-    let accessData = either (\_ -> Nothing) (parseJSON) authResult
+    if isNothing authResult then suicide "Wrong application authentication data!"
+                            else print   "Application authenticated."
+    let accessData = fromJust authResult
     
     print accessData
   
