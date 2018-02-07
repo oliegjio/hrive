@@ -3,9 +3,10 @@
 module Main where
 
   import System.Process
-  import System.Exit
+  import System.IO as IO
 
-  import qualified Data.ByteString.Char8 as B8
+  import qualified Data.ByteString.Char8      as B8
+  import qualified Data.ByteString.Lazy.Char8 as B8L
   import           Data.Aeson hiding (Result)
   import           Data.Maybe
 
@@ -15,26 +16,17 @@ module Main where
   import Network.HTTP.Listen
   import Network.HTTP.Base
   import Network.URI
+  
+  import Text.Regex
 
-  import AccessTokenResponse
+  import qualified Data.DriveFileList as DFL
+  import           Data.AuthResponse
   import SimpleRequests
+  import Config
+  import Utils
 
-  localPort    = 8999 :: Int
-  clientID     = "900337392594-avkns0t5472ef49johhhaor06p8qvn27.apps.googleusercontent.com"
-  clientSecret = "UQL0tyK4MvTDlj2ZzCDIMhfR"
-  redirectURI  = "http://127.0.0.1:" ++ show localPort
-  scope        = "https://www.googleapis.com/auth/drive.readonly"
-  responseType = "code"
-  grantType    = "authorization_code"
-
-  consentURL = "https://accounts.google.com/o/oauth2/v2/auth"
-            ++ "?client_id="     ++ clientID
-            ++ "&redirect_uri="  ++ redirectURI
-            ++ "&response_type=" ++ responseType
-            ++ "&scope="         ++ scope
-
-  processListenResult :: Either e (Request r) -> (Request r -> m) -> Maybe m
-  processListenResult result f = case result of
+  handleListenResult :: Either e (Request r) -> (Request r -> m) -> Maybe m
+  handleListenResult result f = case result of
     Left  _       -> Nothing
     Right request -> Just (f request)
 
@@ -43,7 +35,7 @@ module Main where
     Request uri _ _ _ -> case uri of
       URI _ _ _ query _ -> drop 6 query
     
-  authApp :: String -> IO (Maybe AccessTokenResponse)
+  authApp :: String -> IO (Maybe AuthResponse)
   authApp url = post url >>= return . decodeStrict . B8.pack
     
   listen :: Int -> IO (Result (Request B8.ByteString))
@@ -55,19 +47,16 @@ module Main where
     closeStream stream
     return result
 
-  suicide :: String -> IO ()
-  suicide m = print m >> exitFailure
-
   main :: IO ()
   main = do
     
-    -- r <- createProcess $ proc "chromium" [url]
-    -- r <- createProcess $ proc "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" [consentURL]
-    r <- createProcess $ proc "C:\\Program Files\\Mozilla Firefox\\firefox.exe" [consentURL]
+    -- r <- createProcess $ proc "chromium" [consentURL]
+    r <- createProcess $ proc "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" [consentURL]
+    -- r <- createProcess $ proc "C:\\Program Files\\Mozilla Firefox\\firefox.exe" [consentURL]
     
     result <- listen localPort
   
-    let authCode = processListenResult result takeAuthCode
+    let authCode = handleListenResult result takeAuthCode
     
     if isNothing authCode then suicide "Couldn't receive response from consent screen!"
                           else print   "Received response from consent screen."
@@ -75,7 +64,7 @@ module Main where
                ++ "?client_id="     ++ clientID
                ++ "&client_secret=" ++ clientSecret
                ++ "&grant_type="    ++ grantType
-               ++ "&redirect_uri="  ++ redirectURI
+               ++ "&redirect_uri="  ++ redirectURL
                ++ "&code="          ++ code
                where code = fromJust authCode
 
@@ -84,7 +73,15 @@ module Main where
     if isNothing authResult then suicide "Wrong application authentication data!"
                             else print   "Application authenticated."
     let accessData = fromJust authResult
-    
+
     print accessData
+    
+    let token = accessToken accessData
+    
+    filesList <- get (listFilesURL ++ "?access_token=" ++ token)
+    
+    B8.writeFile "files-list.json" (B8.pack filesList)
+  
+    print (decodeStrict (B8.pack filesList) :: Maybe DFL.DriveFileList)
   
     return mempty

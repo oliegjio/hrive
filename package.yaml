@@ -45,6 +45,8 @@ executables:
     - extra
     - aeson
     - utf8-string
+    - http-types
+    - regex-compat
 
 tests:
   hrive-test:
