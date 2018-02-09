@@ -7,7 +7,7 @@ module Main where
 
   import qualified Data.ByteString.Char8      as B8
   import qualified Data.ByteString.Lazy.Char8 as B8L
-  import           Data.Aeson hiding (Result)
+  import           Data.Aeson                 hiding (Result)
   import           Data.Maybe
 
   import Network.HTTP.Simple hiding (Request)
@@ -19,11 +19,12 @@ module Main where
   
   import Text.Regex
 
-  import qualified Data.DriveFileList as DFL
+  import qualified Data.DriveFile.List      as DFL
+  import qualified Data.DriveFile.DriveFile as DF
   import           Data.AuthResponse
-  import SimpleRequests
-  import Config
-  import Utils
+  import           SimpleRequests
+  import           Config
+  import           Utils
 
   handleListenResult :: Either e (Request r) -> (Request r -> m) -> Maybe m
   handleListenResult result f = case result of
@@ -78,10 +79,16 @@ module Main where
     
     let token = accessToken accessData
     
-    filesList <- get (listFilesURL ++ "?access_token=" ++ token)
+    filesListJSON <- get (listFilesURL ++ "?access_token=" ++ token)
+    B8.writeFile "files-list.json" (B8.pack filesListJSON)
+  
+    let filesListResult = decodeStrict (B8.pack filesListJSON) :: Maybe DFL.DriveFileList
+    if isNothing filesListResult then suicide "Filed to fetch Drive files list!"
+                                 else print   "Fetched Drive files list."
+    let filesList = fromJust filesListResult
     
-    B8.writeFile "files-list.json" (B8.pack filesList)
-  
-    print (decodeStrict (B8.pack filesList) :: Maybe DFL.DriveFileList)
-  
+    print filesList
+                    
+    -- printDownloadUrls $ DFL.items filesList
+      
     return mempty
