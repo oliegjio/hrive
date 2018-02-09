@@ -5,7 +5,7 @@ module Data.Drive.File.Thumbnail (Thumbnail (..)) where
   import Data.Aeson (FromJSON (..), withObject, (.:?))
   
   data Thumbnail = Thumbnail { image    :: Maybe String
-                             , mimeType :: Maybe ByteString
+                             , mimeType :: Maybe String
                              } deriving (Show)
   
   instance FromJSON Thumbnail where

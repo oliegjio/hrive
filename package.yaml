@@ -47,6 +47,7 @@ executables:
     - utf8-string
     - http-types
     - regex-compat
+    - unordered-containers
 
 tests:
   hrive-test:

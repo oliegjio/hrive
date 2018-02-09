@@ -4,12 +4,12 @@ module Data.Drive.File.ImageMediaMetadata (ImageMediaMetadata (..)) where
     
   import Data.Aeson (FromJSON (..), withObject, (.:?))
   
-  import qualified Data.Drive.File.Locations as D
+  import qualified Data.Drive.File.Locations as DFL
   
   data ImageMediaMetadata = ImageMediaMetadata { width            :: Maybe Int
                                                , height           :: Maybe Int
                                                , rotation         :: Maybe Int
-                                               , locations        :: Maybe D.Locations
+                                               , locations        :: Maybe DFL.Locations
                                                , date             :: Maybe String
                                                , cameraMake       :: Maybe String
                                                , cameraModel      :: Maybe String

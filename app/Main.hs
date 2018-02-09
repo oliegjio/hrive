@@ -19,8 +19,8 @@ module Main where
   
   import Text.Regex
 
-  import qualified Data.DriveFile.List      as DFL
-  import qualified Data.DriveFile.DriveFile as DF
+  import qualified Data.Drive.List as DL
+  import qualified Data.Drive.File as DF
   import           Data.AuthResponse
   import           SimpleRequests
   import           Config
@@ -82,13 +82,13 @@ module Main where
     filesListJSON <- get (listFilesURL ++ "?access_token=" ++ token)
     B8.writeFile "files-list.json" (B8.pack filesListJSON)
   
-    let filesListResult = decodeStrict (B8.pack filesListJSON) :: Maybe DFL.DriveFileList
+    let filesListResult = decodeStrict (B8.pack filesListJSON) :: Maybe DL.List
     if isNothing filesListResult then suicide "Filed to fetch Drive files list!"
                                  else print   "Fetched Drive files list."
     let filesList = fromJust filesListResult
     
     print filesList
                     
-    -- printDownloadUrls $ DFL.items filesList
+    -- printDownloadUrls $ DL.items filesList
       
     return mempty

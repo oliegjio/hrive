@@ -4,7 +4,7 @@ module Data.Drive.File.Permission (Permission (..)) where
     
   import Data.Aeson (FromJSON (..), withObject, (.:?))
   
-  import Data.Drive.File.PermissionDetails as DFPD
+  import Data.Drive.File.TeamDrivePermissionDetails as DFTDPD
   
   data Permission = Permission { kind                       :: Maybe String
                                , etag                       :: Maybe String
@@ -13,7 +13,7 @@ module Data.Drive.File.Permission (Permission (..)) where
                                , name                       :: Maybe String
                                , role                       :: Maybe String
                                , additionalRoles            :: Maybe [String]
-                               , type_                      :: Maybe String
+                               , typE                       :: Maybe String
                                , authKey                    :: Maybe String
                                , withLink                   :: Maybe Bool
                                , photoLink                  :: Maybe String
@@ -21,7 +21,7 @@ module Data.Drive.File.Permission (Permission (..)) where
                                , emailAddress               :: Maybe String
                                , domain                     :: Maybe String
                                , expirationDate             :: Maybe String
-                               , teamDrivePermissionDetails :: Maybe [DFPD.PermissionDetails]
+                               , teamDrivePermissionDetails :: Maybe [DFTDPD.TeamDrivePermissionDetails]
                                , deleted                    :: Maybe Bool
                                } deriving (Show)
   

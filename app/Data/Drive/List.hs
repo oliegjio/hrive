@@ -4,7 +4,7 @@ module Data.Drive.List (List (..)) where
     
   import Data.Aeson (FromJSON (..), withObject, (.:?))
   
-  import qualified Data.Drive.File as D
+  import qualified Data.Drive.File as DF
   
   data List = List { kind             :: Maybe String
                    , etag             :: Maybe String
@@ -12,7 +12,7 @@ module Data.Drive.List (List (..)) where
                    , nextPageToken    :: Maybe String
                    , nextLink         :: Maybe String
                    , incompleteSearch :: Maybe Bool
-                   , items            :: Maybe [D.File]
+                   , items            :: Maybe [DF.File]
                    } deriving (Show)
            
   instance FromJSON List where
