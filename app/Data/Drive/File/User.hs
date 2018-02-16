@@ -6,13 +6,14 @@ module Data.Drive.File.User (User (..)) where
   
   import qualified Data.Drive.File.Picture as DFP
   
-  data User = User { kind                :: Maybe String
-                   , displayName         :: Maybe String
-                   , picture             :: Maybe DFP.Picture
-                   , isAuthenticatedUser :: Maybe Bool
-                   , permissionId        :: Maybe Int
-                   , emailAddress        :: Maybe String
-                   } deriving (Show)
+  data User = User
+            { kind                :: Maybe String
+            , displayName         :: Maybe String
+            , picture             :: Maybe DFP.Picture
+            , isAuthenticatedUser :: Maybe Bool
+            , permissionId        :: Maybe String
+            , emailAddress        :: Maybe String
+            } deriving (Show)
   
   instance FromJSON User where
     parseJSON = withObject "User" $ \o ->

@@ -6,28 +6,29 @@ module Data.Drive.File.ImageMediaMetadata (ImageMediaMetadata (..)) where
   
   import qualified Data.Drive.File.Locations as DFL
   
-  data ImageMediaMetadata = ImageMediaMetadata { width            :: Maybe Int
-                                               , height           :: Maybe Int
-                                               , rotation         :: Maybe Int
-                                               , locations        :: Maybe DFL.Locations
-                                               , date             :: Maybe String
-                                               , cameraMake       :: Maybe String
-                                               , cameraModel      :: Maybe String
-                                               , exposureTime     :: Maybe Float
-                                               , aperture         :: Maybe Float 
-                                               , flashUsed        :: Maybe Bool
-                                               , focalLength      :: Maybe Float
-                                               , isoSpeed         :: Maybe Int
-                                               , meteringMode     :: Maybe String
-                                               , sensor           :: Maybe String
-                                               , exposureMode     :: Maybe String
-                                               , colorSpace       :: Maybe String
-                                               , whiteBalance     :: Maybe String
-                                               , exposureBias     :: Maybe Float
-                                               , maxApertureValue :: Maybe Float
-                                               , subjectDistance  :: Maybe Int
-                                               , lens             :: Maybe String
-                                               } deriving (Show)
+  data ImageMediaMetadata = ImageMediaMetadata
+                          { width            :: Maybe Int
+                          , height           :: Maybe Int
+                          , rotation         :: Maybe Int
+                          , locations        :: Maybe DFL.Locations
+                          , date             :: Maybe String
+                          , cameraMake       :: Maybe String
+                          , cameraModel      :: Maybe String
+                          , exposureTime     :: Maybe Float
+                          , aperture         :: Maybe Float 
+                          , flashUsed        :: Maybe Bool
+                          , focalLength      :: Maybe Float
+                          , isoSpeed         :: Maybe Int
+                          , meteringMode     :: Maybe String
+                          , sensor           :: Maybe String
+                          , exposureMode     :: Maybe String
+                          , colorSpace       :: Maybe String
+                          , whiteBalance     :: Maybe String
+                          , exposureBias     :: Maybe Float
+                          , maxApertureValue :: Maybe Float
+                          , subjectDistance  :: Maybe Int
+                          , lens             :: Maybe String
+                          } deriving (Show)
   
   instance FromJSON ImageMediaMetadata where
     parseJSON = withObject "ImageMediaMetadata" $ \o ->
