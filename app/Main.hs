@@ -87,8 +87,15 @@ module Main where
                                  else print   "Fetched Drive files list."
     let filesList = fromJust filesListResult
     
-    print filesList
-                    
-    -- printDownloadUrls $ DL.items filesList
-      
+    let someFileURL = fromJust $ DF.downloadUrl $ (fromJust $ DL.items filesList) !! 1
+    let someFileTitle = fromJust $ DF.title $ (fromJust $ DL.items filesList) !! 1
+    
+    print someFileTitle
+    print someFileURL
+    
+    -- file <- openURI someFileURL
+    -- if isLeft file then suicide "Cannot fetch a file!"
+    --                else print   "Fetched a file."
+    
+    
     return mempty
