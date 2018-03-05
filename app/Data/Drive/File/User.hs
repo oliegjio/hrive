@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.User (User (..)) where
+module Data.Drive.File.User where
   
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
-  import qualified Data.Drive.File.Picture as DFP
+  import Data.Drive.File.Picture
   
   data User = User
             { kind                :: Maybe String
             , displayName         :: Maybe String
-            , picture             :: Maybe DFP.Picture
+            , picture             :: Maybe Picture
             , isAuthenticatedUser :: Maybe Bool
             , permissionId        :: Maybe String
             , emailAddress        :: Maybe String

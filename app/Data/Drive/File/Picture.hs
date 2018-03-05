@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.Picture (Picture (..)) where
+module Data.Drive.File.Picture where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
   data Picture = Picture
                { url :: Maybe String

@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.Capabilities (Capabilities (..)) where
+module Data.Drive.File.Capabilities where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
   data Capabilities = Capabilities
                     { canAddChildren              :: Maybe Bool

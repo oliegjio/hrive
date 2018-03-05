@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.Thumbnail (Thumbnail (..)) where
+module Data.Drive.File.Thumbnail where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
   data Thumbnail = Thumbnail
                  { image    :: Maybe String

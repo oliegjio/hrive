@@ -3,27 +3,24 @@
 module Main where
 
   import System.Process
-  import System.IO as IO
 
-  import qualified Data.ByteString.Char8      as B8
-  import qualified Data.ByteString.Lazy.Char8 as B8L
-  import           Data.Aeson                 hiding (Result)
-  import           Data.Maybe
+  import qualified Data.ByteString.Char8 as BC
+  import Data.Aeson
+  import Data.Maybe
 
-  import Network.HTTP.Simple hiding (Request)
-  import Network.Stream      hiding (Stream)
+  -- import qualified Network.HTTP.Types.Header as HTH
+  import qualified Network.Stream as S
   import Network.HTTP.Listen
-  import Network.HTTP.Types.Header
   import Network.HTTP.Base
   import Network.URI
 
   import qualified Data.Drive.List as DL
   import qualified Data.Drive.File as DF
-  import qualified Drive as D
-  import           Data.AuthResponse
-  import           SimpleRequests
-  import           Config
-  import           Utils
+  import Drive
+  import Data.AuthResponse
+  import SimpleRequests
+  import Config
+  import Utils
 
   -- | Takes a result and a handler.
   --   Executes a given handler on a given result.
@@ -45,17 +42,17 @@ module Main where
   -- | Takes a properly formatted URL, sends GET request to this URL
   --   and returns JSON with some auth data.
   authApp :: String -> IO (Maybe AuthResponse)
-  authApp url = post url >>= return . decodeStrict . B8.pack
+  authApp url = post url >>= return . decodeStrict . BC.pack
   
   -- | Listen given port for a connection.
   --   If connected returns a connection result.
   --   Result could either error or connection data.
-  listen :: Int -> IO (Result (Request B8.ByteString))
+  listen :: Int -> IO (S.Result (Request BC.ByteString))
   listen port = do
     sock   <- prepareSocket port
     conn   <- acceptConnection sock
-    stream <- openStream conn :: IO (Stream B8.ByteString)
-    result <- receiveRequest stream :: IO (Result (Request B8.ByteString))
+    stream <- openStream conn :: IO (Stream BC.ByteString)
+    result <- receiveRequest stream :: IO (S.Result (Request BC.ByteString))
     closeStream stream
     return result
 
@@ -76,8 +73,8 @@ module Main where
     -- 7. Feching access token from access data and using it to do actions
     --    on a clients Google Drive.
     
-    -- r <- createProcess $ proc "chromium" [consentURL]
     r <- createProcess $ proc "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" [consentURL]
+    -- r <- createProcess $ proc "chromium" [consentURL]
     -- r <- createProcess $ proc "C:\\Program Files\\Mozilla Firefox\\firefox.exe" [consentURL]
     
     result <- listen localPort
@@ -105,9 +102,9 @@ module Main where
     let token = accessToken accessData
     
     filesListJSON <- get (listFilesURL ++ "?access_token=" ++ token)
-    B8.writeFile "files-list.json" (B8.pack filesListJSON)
+    BC.writeFile "files-list.json" (BC.pack filesListJSON)
   
-    let filesListResult = decodeStrict (B8.pack filesListJSON) :: Maybe DL.List
+    let filesListResult =   decodeStrict (BC.pack filesListJSON) :: Maybe DL.List
     if isNothing filesListResult then suicide "Filed to fetch Drive files list!"
                                  else print   "Fetched Drive files list."
     let filesList = fromJust filesListResult
@@ -118,18 +115,10 @@ module Main where
     let files = fromJust filesM
     
     let chloeURL = fromJust $ DF.downloadUrl $
-                   fromJust $ D.firstByTitle files "chloe-grace-moretz.jpg"
+                   fromJust $ firstByTitle files "chloe-grace-moretz.jpg"
     
     chloeData <- getBearer token chloeURL
     
-    B8.writeFile "chloe.jpg" (B8.pack chloeData)
-    
-    -- print chloeData
-    
-    -- let someFileURL = fromJust $ DF.downloadUrl $ (fromJust $ DL.items filesList) !! 1
-    -- let someFileTitle = fromJust $ DF.title $ (fromJust $ DL.items filesList) !! 1
-    
-    -- print someFileTitle
-    -- print someFileURL  
+    BC.writeFile "chloe.jpg" (BC.pack chloeData)
     
     return mempty

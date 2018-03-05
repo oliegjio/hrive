@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.AuthResponse (AuthResponse (..)) where
+module Data.AuthResponse where
     
-  import GHC.Generics
-  import Data.Aeson (FromJSON (..), withObject, (.:))
+  import Data.Aeson
   
   data AuthResponse = AuthResponse
                     { accessToken :: String

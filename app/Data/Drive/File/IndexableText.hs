@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.IndexableText (IndexableText (..)) where
+module Data.Drive.File.IndexableText where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
   data IndexableText = IndexableText
                      { text :: Maybe String

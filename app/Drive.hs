@@ -2,8 +2,8 @@ module Drive ( findByTitle
              , firstByTitle
              ) where
   
-  import Data.Drive.File as DF
-  import Data.Drive.List as DL
+  import qualified Data.Drive.File as DF
+  import qualified Data.Drive.List as DL
   import Data.Maybe
   
   checkTitle :: String -> DF.File -> Bool

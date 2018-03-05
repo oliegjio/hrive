@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.Permission (Permission (..)) where
+module Data.Drive.File.Permission where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
-  import Data.Drive.File.TeamDrivePermissionDetails as DFTDPD
+  import Data.Drive.File.TeamDrivePermissionDetails
   
   data Permission = Permission
                   { kind                       :: Maybe String
@@ -22,7 +22,7 @@ module Data.Drive.File.Permission (Permission (..)) where
                   , emailAddress               :: Maybe String
                   , domain                     :: Maybe String
                   , expirationDate             :: Maybe String
-                  , teamDrivePermissionDetails :: Maybe [DFTDPD.TeamDrivePermissionDetails]
+                  , teamDrivePermissionDetails :: Maybe [TeamDrivePermissionDetails]
                   , deleted                    :: Maybe Bool
                   } deriving (Show)
   

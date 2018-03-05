@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.Locations (Locations (..)) where
+module Data.Drive.File.Locations where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
   data Locations = Locations
                  { latitude  :: Maybe Double

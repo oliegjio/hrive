@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.Labels (Labels (..)) where
+module Data.Drive.File.Labels where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
 
   data Labels = Labels
               { starred    :: Maybe Bool

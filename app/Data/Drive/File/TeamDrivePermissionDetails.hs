@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.TeamDrivePermissionDetails (TeamDrivePermissionDetails (..)) where
+module Data.Drive.File.TeamDrivePermissionDetails where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
   data TeamDrivePermissionDetails = TeamDrivePermissionDetails
                                   { teamDrivePermissionType :: Maybe String

@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.VideoMediaMetadata (VideoMediaMetadata (..)) where
+module Data.Drive.File.VideoMediaMetadata where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
   data VideoMediaMetadata = VideoMediaMetadata
                           { width          :: Maybe Int

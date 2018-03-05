@@ -1,20 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File (File (..)) where
+module Data.Drive.File where
   
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
-  import Data.HashMap.Lazy as HML
+  import Data.Aeson
+  import Data.HashMap.Lazy
     
-  import qualified Data.Drive.File.Labels             as DFL
-  import qualified Data.Drive.File.IndexableText      as DFIT
-  import qualified Data.Drive.File.Permission         as DFPe
-  import qualified Data.Drive.File.Parent             as DFPa
-  import qualified Data.Drive.File.ImageMediaMetadata as DFIMM
-  import qualified Data.Drive.File.Thumbnail          as DFT
-  import qualified Data.Drive.File.User               as DFU
-  import qualified Data.Drive.File.Property           as DFPr
-  import qualified Data.Drive.File.VideoMediaMetadata as DFVMM
-  import qualified Data.Drive.File.Capabilities       as DFC
+  import Data.Drive.File.Labels
+  import Data.Drive.File.IndexableText
+  import Data.Drive.File.Permission
+  import Data.Drive.File.Parent
+  import Data.Drive.File.ImageMediaMetadata
+  import Data.Drive.File.Thumbnail
+  import Data.Drive.File.User
+  import Data.Drive.File.Property
+  import Data.Drive.File.VideoMediaMetadata
+  import Data.Drive.File.Capabilities
   
   data File = File
             { kind                    :: Maybe String
@@ -24,21 +24,21 @@ module Data.Drive.File (File (..)) where
             , title                   :: Maybe String
             , mimeType                :: Maybe String
             , description             :: Maybe String
-            , labels                  :: Maybe DFL.Labels
+            , labels                  :: Maybe Labels
             , createdDate             :: Maybe String
             , modifiedDate            :: Maybe String
             , modifiedByMeDate        :: Maybe String
             , downloadUrl             :: Maybe String
-            , indexableText           :: Maybe DFIT.IndexableText
-            , userPermission          :: Maybe DFPe.Permission
+            , indexableText           :: Maybe IndexableText
+            , userPermission          :: Maybe Permission
             , fileExtension           :: Maybe String
             , md5Checksum             :: Maybe String
             , fileSize                :: Maybe String
             , alternateLink           :: Maybe String
             , embedLink               :: Maybe String
             , sharedWithMeDate        :: Maybe String
-            , parents                 :: Maybe [DFPa.Parent]
-            , exportLinks             :: Maybe (HML.HashMap String String)
+            , parents                 :: Maybe [Parent]
+            , exportLinks             :: Maybe (HashMap String String)
             , originalFilename        :: Maybe String
             , quotaBytesUsed          :: Maybe String
             , ownerNames              :: Maybe [String]
@@ -49,24 +49,24 @@ module Data.Drive.File (File (..)) where
             , lastViewedByMeDate      :: Maybe String
             , webContentLink          :: Maybe String
             , explicitlyTrashed       :: Maybe Bool
-            , imageMediaMetadata      :: Maybe DFIMM.ImageMediaMetadata
-            , thumbnail               :: Maybe DFT.Thumbnail
+            , imageMediaMetadata      :: Maybe ImageMediaMetadata
+            , thumbnail               :: Maybe Thumbnail
             , webViewLink             :: Maybe String
             , iconLink                :: Maybe String
             , shared                  :: Maybe Bool
-            , owners                  :: Maybe [DFU.User]
-            , lastModifyingUser       :: Maybe DFU.User
+            , owners                  :: Maybe [User]
+            , lastModifyingUser       :: Maybe User
             , appDataContents         :: Maybe Bool
-            , openWithLinks           :: Maybe (HML.HashMap String String)
+            , openWithLinks           :: Maybe (HashMap String String)
             , defaultOpenWithLink     :: Maybe String
             , headRevisionId          :: Maybe String
             , copyable                :: Maybe Bool
-            , properties              :: Maybe [DFPr.Property]
+            , properties              :: Maybe [Property]
             , markedViewedByMeDate    :: Maybe String
             , version                 :: Maybe String
-            , sharingUser             :: Maybe DFU.User
-            , permissions             :: Maybe [DFPe.Permission]
-            , videoMediaMetadata      :: Maybe DFVMM.VideoMediaMetadata
+            , sharingUser             :: Maybe User
+            , permissions             :: Maybe [Permission]
+            , videoMediaMetadata      :: Maybe VideoMediaMetadata
             , folderColorRgb          :: Maybe String
             , fullFileExtension       :: Maybe String
             , ownedByMe               :: Maybe Bool
@@ -79,8 +79,8 @@ module Data.Drive.File (File (..)) where
             , thumbnailVersion        :: Maybe String
             , hasAugmentedPermissions :: Maybe Bool
             , teamDriveId             :: Maybe String
-            , capabilities            :: Maybe DFC.Capabilities
-            , trashingUser            :: Maybe DFU.User
+            , capabilities            :: Maybe Capabilities
+            , trashingUser            :: Maybe User
             , trashedDate             :: Maybe String
             , permissionIds           :: Maybe [String]
             } deriving (Show)

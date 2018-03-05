@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.Parent (Parent (..)) where
+module Data.Drive.File.Parent where
   
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
   data Parent = Parent
               { kind       :: Maybe String

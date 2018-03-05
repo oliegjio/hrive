@@ -1,16 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Drive.File.ImageMediaMetadata (ImageMediaMetadata (..)) where
+module Data.Drive.File.ImageMediaMetadata where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
-  import qualified Data.Drive.File.Locations as DFL
+  import Data.Drive.File.Locations
   
   data ImageMediaMetadata = ImageMediaMetadata
                           { width            :: Maybe Int
                           , height           :: Maybe Int
                           , rotation         :: Maybe Int
-                          , locations        :: Maybe DFL.Locations
+                          , locations        :: Maybe Locations
                           , date             :: Maybe String
                           , cameraMake       :: Maybe String
                           , cameraModel      :: Maybe String

@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}  
 
-module Data.Drive.List (List (..)) where
+module Data.Drive.List where
     
-  import Data.Aeson (FromJSON (..), withObject, (.:?))
+  import Data.Aeson
   
   import qualified Data.Drive.File as DF
   
