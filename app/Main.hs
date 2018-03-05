@@ -13,11 +13,13 @@ module Main where
   import Network.HTTP.Simple hiding (Request)
   import Network.Stream      hiding (Stream)
   import Network.HTTP.Listen
+  import Network.HTTP.Types.Header
   import Network.HTTP.Base
   import Network.URI
 
   import qualified Data.Drive.List as DL
   import qualified Data.Drive.File as DF
+  import qualified Drive as D
   import           Data.AuthResponse
   import           SimpleRequests
   import           Config
@@ -110,15 +112,24 @@ module Main where
                                  else print   "Fetched Drive files list."
     let filesList = fromJust filesListResult
     
-    let someFileURL = fromJust $ DF.downloadUrl $ (fromJust $ DL.items filesList) !! 1
-    let someFileTitle = fromJust $ DF.title $ (fromJust $ DL.items filesList) !! 1
+    let filesM = DL.items filesList
+    if isNothing filesM then suicide "There is no files!"
+                        else print   "Files fetched."
+    let files = fromJust filesM
     
-    print someFileTitle
-    print someFileURL
+    let chloeURL = fromJust $ DF.downloadUrl $
+                   fromJust $ D.firstByTitle files "chloe-grace-moretz.jpg"
     
-    -- file <- openURI someFileURL
-    -- if isLeft file then suicide "Cannot fetch a file!"
-    --                else print   "Fetched a file."
+    chloeData <- getBearer token chloeURL
     
+    B8.writeFile "chloe.jpg" (B8.pack chloeData)
+    
+    -- print chloeData
+    
+    -- let someFileURL = fromJust $ DF.downloadUrl $ (fromJust $ DL.items filesList) !! 1
+    -- let someFileTitle = fromJust $ DF.title $ (fromJust $ DL.items filesList) !! 1
+    
+    -- print someFileTitle
+    -- print someFileURL  
     
     return mempty

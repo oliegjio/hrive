@@ -153,3 +153,4 @@ module Data.Drive.File (File (..)) where
              <*> o .:? "trashingUser"
              <*> o .:? "trashedDate"
              <*> o .:? "permissionIds"
+             

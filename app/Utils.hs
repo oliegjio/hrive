@@ -1,6 +1,6 @@
-module Utils where
+module Utils (suicide) where
   
-  import System.Exit
+  import System.Exit as SE
   
   suicide :: String -> IO ()
-  suicide m = print m >> exitFailure
+  suicide m = print m >> SE.exitFailure
