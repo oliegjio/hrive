@@ -3,17 +3,18 @@
 module Main where
 
   import System.Process
+  import System.Environment
 
   import qualified Data.ByteString.Char8 as BC
   import Data.Aeson
   import Data.Maybe
 
-  -- import qualified Network.HTTP.Types.Header as HTH
   import qualified Network.Stream as S
   import Network.HTTP.Listen
   import Network.HTTP.Base
   import Network.URI
 
+  -- Hrive imports:
   import qualified Data.Drive.List as DL
   import qualified Data.Drive.File as DF
   import Drive
@@ -114,11 +115,13 @@ module Main where
                         else print   "Files fetched."
     let files = fromJust filesM
     
-    let chloeURL = fromJust $ DF.downloadUrl $
-                   fromJust $ firstByTitle files "chloe-grace-moretz.jpg"
+    args <- getArgs
+    let fileTitle = args !! 0
+    print fileTitle
     
-    chloeData <- getBearer token chloeURL
+    let fileURL = fromJust $ DF.downloadUrl $ fromJust $ firstByTitle files fileTitle       
     
-    BC.writeFile "chloe.jpg" (BC.pack chloeData)
+    fileData <- getBearer token fileURL
+    BC.writeFile fileTitle (BC.pack fileData)
     
     return mempty
