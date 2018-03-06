@@ -57,6 +57,15 @@ module Main where
     closeStream stream
     return result
 
+  openBrowser :: String -> String -> IO ()
+  openBrowser browser url
+    | browser == "win_chrome" = open "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+    | browser == "unix_chromium" = open "chromium"
+    | browser == "win_firefox" = open "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
+    | otherwise = suicide "Wrong `browser` argument for `openBrowser` function!"
+    where
+      open path = (createProcess $ proc path [url]) >> return ()
+
   main :: IO ()
   main = do
     
@@ -74,9 +83,7 @@ module Main where
     -- 7. Feching access token from access data and using it to do actions
     --    on a clients Google Drive.
     
-    r <- createProcess $ proc "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" [consentURL]
-    -- r <- createProcess $ proc "chromium" [consentURL]
-    -- r <- createProcess $ proc "C:\\Program Files\\Mozilla Firefox\\firefox.exe" [consentURL]
+    openBrowser "win_chrome" consentURL
     
     result <- listen localPort
   
@@ -105,7 +112,7 @@ module Main where
     filesListJSON <- get (listFilesURL ++ "?access_token=" ++ token)
     BC.writeFile "files-list.json" (BC.pack filesListJSON)
   
-    let filesListResult =   decodeStrict (BC.pack filesListJSON) :: Maybe DL.List
+    let filesListResult = decodeStrict (BC.pack filesListJSON) :: Maybe DL.List
     if isNothing filesListResult then suicide "Filed to fetch Drive files list!"
                                  else print   "Fetched Drive files list."
     let filesList = fromJust filesListResult
