@@ -16,6 +16,6 @@ clientSecret = "UQL0tyK4MvTDlj2ZzCDIMhfR"
 
 main :: IO ()
 main = do
-  token <- auth clientID clientSecret
+  token <- authenticate clientID clientSecret
   getListOfFiles token >>= B8L.writeFile "files-list.json" <$> encode
   return ()

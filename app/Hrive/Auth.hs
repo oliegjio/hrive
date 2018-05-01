@@ -25,6 +25,10 @@ import Network.URI
 import Data.Aeson
 import Data.Maybe
 
+
+import Control.Applicative
+
+
 import Hrive.Utils
 import Hrive.SimpleRequests
 
@@ -47,8 +51,8 @@ instance FromJSON AuthResponse where
 --   Executes a given handler on a given result.
 --   Result could contain either connection error or connection
 --   data, if successful.
-handleListenResult :: Either e (Request r) -> (Request r -> m) -> Maybe m
-handleListenResult result f = case result of
+handleListenResult :: (Request r -> m) -> Either e (Request r) -> Maybe m
+handleListenResult f result = case result of
   Left  _       -> Nothing
   Right request -> Just (f request)
 
@@ -74,8 +78,8 @@ fetchAuthCode request = case request of
 
 -- | Takes a properly formatted URL, sends GET request to this URL
 --   and returns JSON with some auth data.
-authRequest :: String -> IO (Maybe AuthResponse)
-authRequest url = post url >>= return . decode . B8L.pack
+makeAuthRequest :: String -> IO (Maybe AuthResponse)
+makeAuthRequest url = post url >>= return . decode . B8L.pack
 
 localPort = 8999 :: Int
 redirectURL = "http://127.0.0.1:" ++ show localPort
@@ -84,36 +88,24 @@ scopeURL = "https://www.googleapis.com/auth/drive.readonly"
 grantType = "authorization_code"
 
 -- | Authenticates Hrive application with given client ID and client secret key.
-authenticate :: ClientID -> ClientSecret -> IO String
+authenticate :: ClientID -> ClientSecret -> IO (Maybe String)
 authenticate clientID clientSecret = do
-  
-  let consentURL = "https://accounts.google.com/o/oauth2/v2/auth"
+  openBrowser ChromiumLinux consentURL
+  authCode <- handleListenResult fetchAuthCode <$> listenOnce localPort
+  if isNothing authCode then return Nothing
+    else do
+      authResult <- makeAuthRequest $ getAuthURL $ fromJust authCode
+      if isNothing authResult then return Nothing
+        else return $ Just (accessToken $ fromJust authResult)
+    where
+      getAuthURL authCode = "https://www.googleapis.com/oauth2/v4/token"
+                ++ "?client_id="     ++ clientID
+                ++ "&client_secret=" ++ clientSecret
+                ++ "&grant_type="    ++ grantType
+                ++ "&redirect_uri="  ++ redirectURL
+                ++ "&code="          ++ authCode
+      consentURL = "https://accounts.google.com/o/oauth2/v2/auth"
                 ++ "?client_id="     ++ clientID
                 ++ "&redirect_uri="  ++ redirectURL
                 ++ "&response_type=" ++ responseType
                 ++ "&scope="         ++ scopeURL
-  
-  openBrowser ChromiumLinux consentURL
-  listenResult <- listenOnce localPort
-  
-  let authCode = handleListenResult listenResult fetchAuthCode
-  if isNothing authCode then suicide "Couldn't receive response from consent screen!"
-                        else return ()
-                             
-  let authURL = "https://www.googleapis.com/oauth2/v4/token"
-             ++ "?client_id="     ++ clientID
-             ++ "&client_secret=" ++ clientSecret
-             ++ "&grant_type="    ++ grantType
-             ++ "&redirect_uri="  ++ redirectURL
-             ++ "&code="          ++ code
-             where code = fromJust authCode
-  authResult <- authRequest authURL
-  
-  if isNothing authResult then suicide "Wrong application authentication data!"
-                          else return ()
-  let accessData = fromJust authResult
-  
-  return $ accessToken accessData
-
-
-
