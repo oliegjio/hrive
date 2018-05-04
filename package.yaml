@@ -44,10 +44,12 @@ executables:
     - network-uri
     - extra
     - aeson
+    - aeson-pretty
     - utf8-string
     - http-types
     - regex-compat
     - unordered-containers
+    - directory
 
 tests:
   hrive-test:

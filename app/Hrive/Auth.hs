@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Module that provide functions to authenticate Hrive application.
-module Hrive.Auth where
+module Hrive.Auth (authenticate) where
 
 -- Auth flow:
 -- 1. Opens up a web browser with consent screen. There a user
@@ -24,10 +24,6 @@ import Network.HTTP.Base
 import Network.URI
 import Data.Aeson
 import Data.Maybe
-
-
-import Control.Applicative
-
 
 import Hrive.Utils
 import Hrive.SimpleRequests
@@ -79,13 +75,13 @@ fetchAuthCode request = case request of
 -- | Takes a properly formatted URL, sends GET request to this URL
 --   and returns JSON with some auth data.
 makeAuthRequest :: String -> IO (Maybe AuthResponse)
-makeAuthRequest url = post url >>= return . decode . B8L.pack
+makeAuthRequest url = fmap decodeStrict (post url)
 
 localPort = 8999 :: Int
 redirectURL = "http://127.0.0.1:" ++ show localPort
 responseType = "code"
-scopeURL = "https://www.googleapis.com/auth/drive.readonly"
 grantType = "authorization_code"
+scopeURL = "https://www.googleapis.com/auth/drive.readonly"
 
 -- | Authenticates Hrive application with given client ID and client secret key.
 authenticate :: ClientID -> ClientSecret -> IO (Maybe String)

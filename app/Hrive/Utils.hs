@@ -1,8 +1,9 @@
 -- | Module that provide some additional functionaliy.
 module Hrive.Utils where
-  
+
 import System.Exit
 import System.Process
+import Control.Monad
 
 data Browser = GoogleChromeWindows
              | ChromiumLinux
@@ -18,7 +19,7 @@ openBrowser browser url = case browser of
   FirefoxWindows      -> open "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
   FirefoxLinux        -> open "firefox"
   where
-    open path = (createProcess $ proc path [url]) >> return ()
+    open path = void $ createProcess $ proc path [url]
 
 -- | Print error message and exit with error.
 suicide :: String -> IO ()
